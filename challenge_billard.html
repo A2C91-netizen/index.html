@@ -1,713 +1,603 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Challenge Billard Club d'Ormoy</title>
-            
-<style>
-    /* Fond de la page en vert moyen */
-    body { 
-        font-family: Arial, sans-serif; 
-        margin: 20px; 
-        background-color: #2e7d32;
-        color: #ffffff;
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Billard Club d'Ormoy - Partie par categorie (Mode Local)</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 2px; 
+            background-color: #2e7d32; 
+            color: #ffffff;
+            box-sizing: border-box;
+            padding-bottom: 120px; 
+        }
 
-    /* En-tête avec décalages d'une colonne de chaque côté */
-    .header-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        margin-bottom: 20px;
-    }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
 
-    .header-container h2 {
-        margin: 0;
-        margin-left: 120px; 
-    }
+        .header-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 1px;
+            text-align: center;
+        }
 
-    .header-container button {
-        margin-right: 120px; 
-    }
+        .header-container h2 {
+            font-size: 1.1rem;
+            margin: 0 0 2px 0;
+            font-weight: bold;
+        }
 
-    /* Style du tableau */
-    .excel-table { 
-        border-collapse: collapse; 
-        width: auto;
-        margin: 0 auto;
-        background: #2e7d32; 
-        color: #000000;
-        border: none; 
-        border-radius: 6px;
-        overflow: hidden;
-    }
-    
-    .excel-table td { 
-        border: none !important; 
-        padding: 8px 15px; 
-        text-align: center; 
-        background-color: #2e7d32;
-        color: #ffffff;
-    }
+        #message-alerte-doublon {
+            color: #ffffff;
+            background-color: #d9534f;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin: 2px auto;
+            padding: 2px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            min-height: 18px;
+            text-align: center;
+        }
 
-    .excel-table td:not(:empty) {
-        background-color: #ffffff;
-        color: #000000;
-    }
+        .regles-container {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 10px;
+            margin: 15px auto;
+            max-width: 100%;
+            border-radius: 6px;
+            font-size: 11px;
+            line-height: 1.4;
+            text-align: left;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
 
-    /* Encadrement spécifique de la cellule C12 */
-    #cell-C12 {
-        border: 2px solid #000000 !important;
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
+        .regles-container ul {
+            margin: 5px 0 0 15px;
+            padding: 0;
+            list-style-type: disc;
+        }
 
-    /* Masquer la colonne G (7ème colonne) et les suivantes */
-    .excel-table td:nth-child(n+7) {
-        display: none !important;
-    }
-                        
-    select, input[type="text"] { 
-        border: 1px solid #ccc; 
-        border-radius: 4px; 
-        background-color: #ffff99 !important;
-        color: #000000 !important;
-    }
-    input[type="text"]:focus, select:focus { 
-        border-color: #1f4e78; 
-        outline: none; 
-        background-color: #ffff66 !important;
-    }
-</style>
-            
+        .raz-container {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 100;
+        }
+
+        .quitter-container {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+
+        .raz-container button, .quitter-container button {
+            background-color: #d9534f;         
+            color: white;         
+            border: none;         
+            padding: 8px 12px;         
+            font-size: 13px;         
+            font-weight: bold;         
+            border-radius: 4px;         
+            cursor: pointer;        
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+
+        /* --- TABLEAU UTILISATEUR --- */
+        .excel-table-user { 
+            border-collapse: collapse; 
+            width: 100%; 
+            max-width: 100%;
+            margin: 0 auto; 
+            background: #2e7d32; 
+            color: #000000; 
+            border: none; 
+            border-radius: 6px; 
+            overflow: hidden;
+            font-size: 12px; 
+            font-weight: bold;
+        }
+
+        .excel-table-user td { 
+            border: none !important; 
+            padding: 4px 2px; 
+            text-align: center; 
+            background-color: #2e7d32; 
+            color: #ffffff;
+            word-break: break-word;
+            white-space: normal !important; 
+            font-weight: bold;
+        }
+
+        .excel-table-user td:not(:empty) {
+            background-color: #ffffff;
+            color: #000000;
+            font-weight: bold;
+        }
+
+        #cell-C10 {
+            background-color: #2e7d32 !important;
+            color: #ffffff !important;
+            font-size: 16px !important;
+        }
+
+        #cell-B9, #cell-D9 {
+            background-color: #2e7d32 !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            text-align: center !important;
+        }
+
+        .excel-table-user tr td:nth-child(n+6) {
+            display: none !important;
+        }
+
+        #cell-B7, #cell-D7, #cell-B17, #cell-D17 {
+            font-size: 16px !important;
+            font-weight: bold !important;
+        }
+
+        #cell-C5, #cell-B13, #cell-C13, #cell-D13, #cell-C21 {
+            font-size: 15px !important;
+        }
+
+        #cell-B13, #cell-C13, #cell-D13 {
+            padding: 4px 2px !important;
+            font-size: 15px !important;
+        }
+
+        #cell-C21 {
+            white-space: nowrap !important;
+            font-size: 13px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #cell-B12, #cell-C12, #cell-D12, #cell-B20, #cell-C22, #cell-C19, #cell-B12-gauche, #cell-D12-droite, #cell-vainqueur-dessous-1, #cell-vainqueur-dessous-2 {
+            font-weight: bold !important;
+        }
+
+        #cell-C12 {
+            border: 2px solid #000000 !important;
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            font-weight: bold !important;
+        }
+
+        select, input[type="number"] { 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            background-color: #ffff99 !important; 
+            color: #000000 !important;
+            font-size: 14px; 
+            padding: 6px 2px;
+            width: 100%;
+            max-width: 100%;
+            font-weight: bold !important; 
+        }
+    </style>
 </head>
 <body>
 
-<div class="header-container">
-    <h2>Challenge Billard Club d'Ormoy</h2>
-    <button onclick="remiseAZero()" style="
-        background-color: #d9534f; 
-        color: white; 
-        border: none; 
-        padding: 10px 20px; 
-        font-size: 14px; 
-        font-weight: bold; 
-        border-radius: 5px; 
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        Remise À Zéro
-    </button>
+<div class="header-container">    
+    <h2 id="titrePage">CHALLENGE BILLARD CLUB D'ORMOY (HORS LIGNE)</h2>
+    <div><span id="message-alerte-doublon"></span></div>
 </div>
-                                                                                                                
-<script>
-const mapNomToValeurI = {};
 
-let cellB4 = null, cellD4 = null;
-let cellB8 = null, cellD8 = null;
-let cellC10 = null, cellC12 = null;
-let cellB12 = null, cellD12 = null;
-let cellB14 = null, cellC14 = null, cellD14 = null;
-let cellC16 = null;
-let cellB18 = null, cellD18 = null;
-let cellC22 = null;
-
-let inputB14 = null, inputC14 = null, inputD14 = null;
-let selectB4 = null, selectD4 = null;
-
-function mettreAJourCouleursCellules() {
-    const cellulesCalcul = [cellB8, cellD8, cellB12, cellD12, cellC10, cellC12, cellC16, cellB18, cellD18, cellC22];
-    cellulesCalcul.forEach(cell => {
-        if (!cell) return;
-        if (cell.children.length > 0) return;
-        if (cell.innerText.trim() === "") {
-            cell.style.backgroundColor = "#2e7d32";
-            cell.style.color = "#ffffff";
-        } else {
-            cell.style.backgroundColor = "#ffffff";
-            cell.style.color = "#000000";
-        }
-    });
-}
-
-function remiseAZero() {
-    if (selectB4) selectB4.selectedIndex = 0;
-    if (selectD4) selectD4.selectedIndex = 0;
-            
-    if (inputB14) inputB14.value = "0";
-    if (inputC14) inputC14.value = "0";
-    if (inputD14) inputD14.value = "0";
-
-    if (cellB8) cellB8.innerText = "";
-    if (cellD8) cellD8.innerText = "";
-    if (cellB12) cellB12.innerText = "";
-    if (cellD12) cellD12.innerText = "";
-
-    if (cellC10) cellC10.innerText = "";
-
-    if (cellC16) cellC16.innerText = "";
-    if (cellB18) cellB18.innerText = "0";
-    if (cellD18) cellD18.innerText = "0";
-    if (cellC22) cellC22.innerText = "";
-
-    mettreAJourCouleursCellules();
-}
-
-function creerMenuDeroulant(cellule, listeNoms, selectId) {
-    if (!cellule) return null;
-    const valActuelle = cellule.innerText.trim();
-    let select = document.createElement('select');
-    select.style.width = "100%";
-    select.style.padding = "5px";
-    select.style.fontWeight = "bold";
-    select.style.backgroundColor = "#ffff99";
-    if (selectId) select.id = selectId;
-                            
-    listeNoms.forEach(nom => {
-        let option = document.createElement('option');
-        option.value = nom;
-        option.text = nom;
-        if (nom === valActuelle) option.selected = true;
-        select.appendChild(option);
-    });
-                                                    
-    cellule.innerHTML = '';
-    cellule.appendChild(select);
-    cellule.style.backgroundColor = "#2e7d32";
-    return select;
-}
-            
-function creerChampSaisie(cellule, inputId, valeurParDefaut = "0") {
-    if (!cellule) return null;
-    let valActuelle = cellule.innerText.trim();
-    if (valActuelle === "" || valActuelle === "NaN") {
-        valActuelle = valeurParDefaut;
-    }
-                    
-    let input = document.createElement('input');
-    input.type = "text";
-    input.value = parseInt(valActuelle, 10) || valeurParDefaut;
-    input.style.width = "90%";
-    input.style.padding = "5px";
-    input.style.textAlign = "center";
-    input.style.fontWeight = "bold";
-    input.style.border = "1px solid #ccc";
-    input.style.borderRadius = "4px";
-    input.style.backgroundColor = "#ffff99";
-    if (inputId) input.id = inputId;
-                                        
-    input.addEventListener('focus', function() { this.select(); });
-    input.addEventListener('blur', function() {
-        if (this.value.trim() === "" || isNaN(parseInt(this.value, 10))) {
-            this.value = "0";
-        } else {
-            this.value = parseInt(this.value, 10).toString();
-        }
-    });
-                                    
-    cellule.innerHTML = '';
-    cellule.appendChild(input);
-    cellule.style.backgroundColor = "#2e7d32";
-    return input;
-}
-            
-document.addEventListener("DOMContentLoaded", function() {
-    const table = document.querySelector('.excel-table');
-    if (!table) return;
-        
-    const rows = table.querySelectorAll('tbody tr');
-    let listeNoms = ["-- Sélectionner un nom --"];
-            
-    rows.forEach((row) => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length > 8) {
-            const nom = cells[6].innerText.trim();
-            let valeurI = cells[8].innerText.trim();
-            
-            if (valeurI !== "" && !isNaN(parseFloat(valeurI))) {
-                valeurI = parseInt(parseFloat(valeurI), 10).toString();
-                cells[8].innerText = valeurI;
-            }
-                                                            
-            if (nom !== "" && !nom.startsWith("--") && nom !== "NOM" && nom !== "LIAISON") {
-                if (!listeNoms.includes(nom)) listeNoms.push(nom);
-                mapNomToValeurI[nom] = valeurI;
-            }
-        }
-    });
-
-    if (rows.length >= 21) {
-        cellB4  = rows[3].querySelectorAll('td')[1];  
-        cellD4  = rows[3].querySelectorAll('td')[3];  
-
-        cellB8  = rows[6].querySelectorAll('td')[1];  
-        cellD8  = rows[6].querySelectorAll('td')[3];  
-
-        cellC10 = rows[8].querySelectorAll('td')[2];  
-        cellC12 = rows[10].querySelectorAll('td')[2]; 
-
-        cellB12 = rows[10].querySelectorAll('td')[1]; 
-        cellD12 = rows[10].querySelectorAll('td')[3]; 
-
-        cellB14 = rows[12].querySelectorAll('td')[1]; 
-        cellC14 = rows[12].querySelectorAll('td')[2]; 
-        cellD14 = rows[12].querySelectorAll('td')[3]; 
-
-        cellC16 = rows[14].querySelectorAll('td')[2]; 
-
-        cellB18 = rows[16].querySelectorAll('td')[1]; 
-        cellD18 = rows[16].querySelectorAll('td')[3]; 
-
-        cellC22 = rows[20].querySelectorAll('td')[2]; 
-    }
-
-    selectB4 = creerMenuDeroulant(cellB4, listeNoms, "select_B4");
-    selectD4 = creerMenuDeroulant(cellD4, listeNoms, "select_D4");
-
-    inputB14 = creerChampSaisie(cellB14, "input_B14", "0");
-    inputC14 = creerChampSaisie(cellC14, "input_C14", "0");
-    inputD14 = creerChampSaisie(cellD14, "input_D14", "0");
-
-    const calculerC10 = function() {
-        if (!cellC10) return;
-        const valB8 = cellB8 ? cellB8.innerText.trim() : "";
-        const valD8 = cellD8 ? cellD8.innerText.trim() : "";
-                                                
-        if (valB8 === "" && valD8 === "") {
-            cellC10.innerText = "";
-        } else if (valB8 !== "" && valD8 !== "" && valB8 === valD8) {
-            cellC10.innerText = "PARTIE EN 30 REPRISES";
-        } else {
-            cellC10.innerText = "PARTIE PAR CATEGORIE";
-        }
-    };
-                                                                        
-    const calculerC16 = function() {
-        if (!cellC16) return;
-        const valB8 = cellB8 ? cellB8.innerText.trim() : "";
-        const valD8 = cellD8 ? cellD8.innerText.trim() : "";
-                                                
-        if (valB8 !== "" && valD8 !== "" && valB8 !== valD8) {
-            cellC16.innerText = "ECART AVEC LA CATEGORIE";
-        } else {
-            cellC16.innerText = "";
-        }
-    };
-                                                                        
-    const calculerB18 = function() {
-        if (!cellB18) return 0;
-        const valB14 = parseInt(inputB14 ? inputB14.value : 0, 10) || 0;
-        const valB8  = parseInt(cellB8 ? cellB8.innerText : 0, 10) || 0;
-        const resultat = valB14 - valB8;
-        cellB18.innerText = isNaN(resultat) ? "0" : resultat.toString();
-        return resultat;
-    };
-                                                                                                    
-    const calculerD18 = function() {
-        if (!cellD18) return 0;
-        const valD14 = parseInt(inputD14 ? inputD14.value : 0, 10) || 0;
-        const valD8  = parseInt(cellD8 ? cellD8.innerText : 0, 10) || 0;
-        const resultat = valD14 - valD8;
-        cellD18.innerText = isNaN(resultat) ? "0" : resultat.toString();
-        return resultat;
-    };
-                                                                                                    
-    const calculerC22 = function() {
-        if (!cellC22) return;
-        const valB8  = parseInt(cellB8 ? cellB8.innerText : 0, 10) || 0;
-        const valD8  = parseInt(cellD8 ? cellD8.innerText : 0, 10) || 0;
-        const valC14 = parseInt(inputC14 ? inputC14.value : 0, 10) || 0;
-
-        // Si les joueurs ne sont pas sélectionnés ou si C14 est égal à 0, C22 reste vide
-        if ((valB8 === 0 && valD8 === 0) || valC14 === 0) {
-            cellC22.innerText = "";
-            return;
-        }
-                                
-        const valB14 = parseInt(inputB14 ? inputB14.value : 0, 10) || 0;
-        const valD14 = parseInt(inputD14 ? inputD14.value : 0, 10) || 0;
-                                
-        const valB18 = parseInt(cellB18 ? cellB18.innerText : 0, 10) || 0;
-        const valD18 = parseInt(cellD18 ? cellD18.innerText : 0, 10) || 0;
-                    
-        const nomB12 = cellB12 ? cellB12.innerText.trim() : "";
-        const nomD12 = cellD12 ? cellD12.innerText.trim() : "";
-                    
-        let resultat = "";
-        
-        if (valB8 === valD8 && valC14 === 30) {
-            if (valB14 > valD14) {
-                resultat = nomB12;
-            } else if (valD14 > valB14) {
-                resultat = nomD12;
-            } else {
-                resultat = "EGALITE";
-            }
-        } else {
-            if (valB18 > valD18) {
-                resultat = nomB12;
-            } else if (valD18 > valB18) {
-                resultat = nomD12;
-            } else {
-                resultat = "EGALITE";
-            }
-        }
-                                                                                                                                                                                                                                                                                                                                                                                        
-        cellC22.innerText = resultat;
-    };
-                
-    window.recalculerToutGlobal = function() {
-        calculerC10();
-        calculerC16();
-        calculerB18();
-        calculerD18();
-        calculerC22();
-        mettreAJourCouleursCellules();
-    };
-                                                                                                
-    if (inputB14) inputB14.addEventListener('input', window.recalculerToutGlobal);
-    if (inputC14) inputC14.addEventListener('input', window.recalculerToutGlobal);
-    if (inputD14) inputD14.addEventListener('input', window.recalculerToutGlobal);
-                            
-    if (selectB4) {
-        const majB4 = function() {
-            const choisi = selectB4.value;
-            const estValide = (choisi && !choisi.startsWith("--"));
-                                                        
-            if (cellB8) cellB8.innerText = estValide && mapNomToValeurI[choisi] !== undefined ? mapNomToValeurI[choisi] : "";
-            if (cellB12) cellB12.innerText = estValide ? choisi : "";
-            window.recalculerToutGlobal();
-        };
-        selectB4.addEventListener('change', majB4);
-        majB4();
-    }
-                                                                                                                                                                                
-    if (selectD4) {
-        const majD4 = function() {
-            const choisi = selectD4.value;
-            const estValide = (choisi && !choisi.startsWith("--"));
-                                                        
-            if (cellD8) cellD8.innerText = estValide && mapNomToValeurI[choisi] !== undefined ? mapNomToValeurI[choisi] : "";
-            if (cellD12) cellD12.innerText = estValide ? choisi : "";
-            window.recalculerToutGlobal();
-        };
-        selectD4.addEventListener('change', majD4);
-        majD4();
-    }
-});
-</script>
-                                                                                                                
-<table border="1" class="dataframe excel-table">
-  <tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>NOM</td>
-      <td>1</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>---</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>ALAIN</td>
-      <td>R4</td>
-      <td>33</td>
-      <td>LIAISON</td>
-      <td>2</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>ANNE MARIE</td>
-      <td>L2</td>
-      <td>19</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td>SCORES A REALISER OU DEPASSER</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>BERNARD</td>
-      <td>L2</td>
-      <td>19</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>DANY</td>
-      <td>L1</td>
-      <td>28</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>0</td>
-      <td></td>
-      <td>0</td>
-      <td></td>
-      <td></td>
-      <td>DOMINIQUE ARF</td>
-      <td>L1</td>
-      <td>28</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>DOMINIQUE CHE</td>
-      <td>L1</td>
-      <td>28</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td>PARTIE EN 30 REPRISES</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>ERIC BER</td>
-      <td>L2</td>
-      <td>19</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>ERIC TAV</td>
-      <td>R3</td>
-      <td>43</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>---</td>
-      <td id="cell-C12">REPRISES</td>
-      <td>---</td>
-      <td></td>
-      <td></td>
-      <td>JACQUES</td>
-      <td>R3</td>
-      <td>43</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>JF FUS</td>
-      <td>R3</td>
-      <td>43</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td></td>
-      <td></td>
-      <td>JF LAF</td>
-      <td>R4</td>
-      <td>33</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>JOSE</td>
-      <td>L1</td>
-      <td>28</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>LAURENT</td>
-      <td>R4</td>
-      <td>33</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>MICHAEL</td>
-      <td>R3</td>
-      <td>43</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>0</td>
-      <td></td>
-      <td>0</td>
-      <td></td>
-      <td></td>
-      <td>MICHEL</td>
-      <td>R4</td>
-      <td>33</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>NICOLAS</td>
-      <td>R4</td>
-      <td>33</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td>VAINQUEUR</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>PHILIPPE</td>
-      <td>R4</td>
-      <td>33</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>RAYMOND</td>
-      <td>L1</td>
-      <td>28</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td>EGALITE</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>RENE</td>
-      <td>R4</td>
-      <td>33</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>SERGE</td>
-      <td>L2</td>
-      <td>19</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
+<!-- 1. TABLEAU UTILISATEUR -->
+<table border="1" class="dataframe excel-table-user">  
+  <tbody id="corpsTableauUser">    
+    <tr><td></td><td style="background-color: #2e7d32; color: #ffffff; font-size: 11px; font-weight: bold; border: none;">NOM DU JOUEUR</td><td></td><td style="background-color: #2e7d32; color: #ffffff; font-size: 11px; font-weight: bold; border: none;">NOM DU JOUEUR</td><td></td><td></td><td>NOM DU JOUEUR</td><td>CAT</td><td>POINT</td><td>NOM</td><td>1</td><td>1</td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td colspan="3" style="background:#e0e0e0; text-align:center;"></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>LIAISON</td><td>2</td><td>3</td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td colspan="5" id="cell-C5" style="text-align: center; white-space: nowrap; font-weight: bold; background-color: #2e7d32; color: #ffffff;">SCORES A REALISER OU DEPASSER</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td id="cell-B7">0</td><td></td><td id="cell-D7">0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td id="cell-B9">SCORE</td><td id="cell-C10" style="text-align: center; white-space: nowrap; font-weight: bold; background-color: #2e7d32; color: #ffffff;">PARTIE EN 30 REPRISES</td><td id="cell-D9">SCORE</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td id="cell-B12-gauche">---</td><td id="cell-C12">REPRISES</td><td id="cell-D12-droite">---</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td id="cell-B13">0</td><td id="cell-C13">0</td><td id="cell-D13">0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td id="cell-B17">0</td><td></td><td id="cell-D17">0</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr id="ligne-vainqueur"><td id="cell-B20"></td><td></td><td id="cell-C19"><strong>VAINQUEUR</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td id="cell-vainqueur-dessous-1"></td><td id="cell-C21"></td><td id="cell-vainqueur-dessous-2"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>    
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>  
   </tbody>
 </table>
+
+<!-- Texte explicatif -->
+<div class="regles-container">
+    <strong>LE JOUEUR REMPORTANT LE TIRAGE A LA BANDE CHOISI QUI REALISE LE POINT DE DEPART</strong>
+    <ul>
+        <li><strong>SI LE JOUEUR 1 ARRIVE OU DEPASSE SON SCORE A REALISER, LE JOUEUR 2 AURA A JOUER LE POINT DE DEPART</strong></li>
+        <li><strong>SI LE JOUEUR 2 ARRIVE OU DEPASSE SON SCORE A REALISER, LA PARTIE S'ARRETE</strong></li>
+        <li><strong>SI LES SCORES NE SONT PAS ATTEINTS LA PARTIE S'ARRETE A 30 REPRISES</strong></li>
+    </ul>
+</div>
+
+<!-- Bouton RAZ -->
+<div class="raz-container">
+    <button onclick="remiseAZero()">REMISE À ZÉRO</button>
+</div>
+
+<!-- Bouton Quitter -->
+<div class="quitter-container">
+    <button onclick="quitterApplication()">QUITTER</button>
+</div>
+
+<!-- Script Logique Métier & Liste de joueurs locale en dur -->
+<script>
+    // LISTE DES JOUEURS EN LOCAL (Nom du joueur : Points à réaliser)
+    const listeJoueursLocale = {
+        "ALAIN": "42",
+        "DOMINIQUE BAR": "30",
+        "DOMINIQUE CHE": "30",
+        "ERIC TAV": "60",
+        "JACQUES": "60",
+		"JEAN FRANCOIS LAF": "42",
+		"JOSE": "30",
+		"MICHEL": "42",	
+		"NICOLAS": "30",	
+		"RAYMOND": "30",
+		"RENE": "30",
+    };
+
+    let cellB4 = null, cellD4 = null;
+    let cellB8 = null, cellD8 = null;
+    let cellC10 = null, cellC12 = null;
+    let cellB12 = null, cellD12 = null;
+    let cellB14 = null, cellC14 = null, cellD14 = null;
+    let cellC16 = null;
+    let cellB18 = null, cellD18 = null;
+    let cellB20 = null, cellC22 = null;
+
+    let inputB14 = null, inputC14 = null, inputD14 = null;
+    let selectB4 = null, selectD4 = null;
+
+    function mettreAJourCouleursCellules() {    
+        const cellulesCalcul = [cellB8, cellD8, cellB12, cellD12, cellC12, cellC16, cellB18, cellD18, cellC22];    
+        cellulesCalcul.forEach(cell => {        
+            if (!cell) return;        
+            if (cell.children.length > 0) return;        
+            
+            if (cell === cellC22) {
+                if (cell.innerText.trim() !== "") {
+                    cell.style.backgroundColor = "#4a90e2"; 
+                    cell.style.color = "#ffffff";
+                    cell.style.fontWeight = "bold";
+                } else {
+                    cell.style.backgroundColor = "#2e7d32";
+                    cell.style.color = "#ffffff";
+                }
+                return;
+            }
+
+            if (cell.innerText.trim() === "") {            
+                cell.style.backgroundColor = "#2e7d32";            
+                cell.style.color = "#ffffff";        
+            } else {            
+                cell.style.backgroundColor = "#ffffff";            
+                cell.style.color = "#000000";
+                cell.style.fontWeight = "bold";
+            }    
+        });
+
+        if (cellC10) {
+            cellC10.style.backgroundColor = "#2e7d32";
+            cellC10.style.color = "#ffffff";
+            cellC10.style.fontSize = "16px";
+        }
+    }
+
+    function remiseAZero() {    
+        if (selectB4) selectB4.selectedIndex = 0;    
+        if (selectD4) selectD4.selectedIndex = 0;                
+        if (inputB14) inputB14.value = "0";    
+        if (inputC14) inputC14.value = "0";    
+        if (inputD14) inputD14.value = "0";
+
+        const msgDiv = document.getElementById("message-alerte-doublon");
+        if (msgDiv) {
+            msgDiv.innerText = "";
+            msgDiv.style.padding = "0";
+        }
+
+        if (cellB8) cellB8.innerText = "0";    
+        if (cellD8) cellD8.innerText = "0";    
+        if (cellB12) cellB12.innerText = "";    
+        if (cellD12) cellD12.innerText = "";
+        if (cellC10) cellC10.innerText = "PARTIE EN 30 REPRISES";
+        if (cellC16) cellC16.innerText = "";    
+        if (cellB18) cellB18.innerText = "0%";    
+        if (cellD18) cellD18.innerText = "0%";    
+        if (cellB20) cellB20.innerText = "";
+        if (cellC22) cellC22.innerText = "";
+
+        if (selectB4) selectB4.dispatchEvent(new Event('change'));
+        if (selectD4) selectD4.dispatchEvent(new Event('change'));
+
+        mettreAJourCouleursCellules();
+    }
+
+    function quitterApplication() {
+        window.close();
+        window.location.href = "about:blank";
+    }
+
+    function creerMenuDeroulant(cellule, listeNoms, selectId) {    
+        if (!cellule) return null;    
+        const valActuelle = cellule.innerText.trim();    
+        let select = document.createElement('select');    
+        select.style.width = "100%";    
+        select.style.padding = "4px 2px";    
+        select.style.fontWeight = "bold"; 
+        select.style.backgroundColor = "#ffff99";    
+        if (selectId) select.id = selectId;                            
+        
+        listeNoms.forEach(nom => {        
+            let option = document.createElement('option');        
+            option.value = (nom === "---") ? "" : nom;        
+            option.text = nom;
+            option.style.fontWeight = "bold"; 
+            if ((nom === "---" && valActuelle === "") || nom === valActuelle) option.selected = true;        
+            select.appendChild(option);    
+        });                                                                
+        
+        cellule.innerHTML = '';    
+        cellule.appendChild(select);    
+        cellule.style.backgroundColor = "#2e7d32";    
+        return select;
+    }            
+
+    function creerChampSaisie(cellule, inputId, valeurParDefaut = "0") {    
+        if (!cellule) return null;    
+        let valActuelle = cellule.innerText.trim();    
+        if (valActuelle === "" || valActuelle === "NaN") {        
+            valActuelle = valeurParDefaut;    
+        }                                
+        
+        let input = document.createElement('input');    
+        input.type = "number"; 
+        input.pattern = "[0-9]*"; 
+        input.inputMode = "numeric"; 
+        input.value = parseInt(valActuelle, 10) || valeurParDefaut;    
+        input.style.width = "100%";    
+        input.style.padding = "10px 4px"; 
+        input.style.fontSize = "18px";   
+        input.style.textAlign = "center";    
+        input.style.fontWeight = "bold";    
+        input.style.border = "1px solid #ccc";    
+        input.style.borderRadius = "4px";    
+        input.style.backgroundColor = "#ffff99";    
+        if (inputId) input.id = inputId;                                    
+
+        input.addEventListener('focus', function() { this.select(); });    
+        input.addEventListener('blur', function() {        
+            if (this.value.trim() === "" || isNaN(parseInt(this.value, 10))) {            
+                this.value = "0";        
+            } else {            
+                this.value = parseInt(this.value, 10).toString();        
+            }    
+        });                                                
+
+        cellule.innerHTML = '';    
+        cellule.appendChild(input);    
+        cellule.style.backgroundColor = "#2e7d32";    
+        return input;
+    }            
+
+    document.addEventListener("DOMContentLoaded", function() {    
+        const table = document.querySelector('.excel-table-user');    
+        if (!table) return;            
+        const rows = table.querySelectorAll('tbody tr');    
+
+        if (rows.length >= 22) {        
+            cellB4  = rows[2].querySelectorAll('td')[1];        
+            cellD4  = rows[2].querySelectorAll('td')[3]; 
+            cellB8  = document.getElementById('cell-B7');          
+            cellD8  = document.getElementById('cell-D7'); 
+            cellC10 = document.getElementById('cell-C10');          
+            cellC12 = rows[10].querySelectorAll('td')[2]; 
+            cellB12 = rows[10].querySelectorAll('td')[1];          
+            cellD12 = rows[10].querySelectorAll('td')[3]; 
+            cellB14 = rows[12].querySelectorAll('td')[1];          
+            cellC14 = document.getElementById('cell-C13');          
+            cellD14 = rows[12].querySelectorAll('td')[3]; 
+            cellC16 = rows[14].querySelectorAll('td')[2]; 
+            cellB18 = document.getElementById('cell-B17');          
+            cellD18 = document.getElementById('cell-D17');          
+            cellB20 = rows[18].querySelectorAll('td')[0];
+            cellC22 = document.getElementById('cell-C21');     
+        }
+
+        let nomsTries = Object.keys(listeJoueursLocale).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+        let listeNoms = ["---", ...nomsTries];
+
+        selectB4 = creerMenuDeroulant(cellB4, listeNoms, "select_B4");    
+        selectD4 = creerMenuDeroulant(cellD4, listeNoms, "select_D4");
+
+        inputB14 = creerChampSaisie(cellB14, "input_B14", "0");    
+        inputC14 = creerChampSaisie(cellC14, "input_C14", "0");    
+        inputD14 = creerChampSaisie(cellD14, "input_D14", "0");
+
+        const verifierDoublonEtMettreAJour = function(sourceModifiee) {
+            const msgDiv = document.getElementById("message-alerte-doublon");
+            if (!selectB4 || !selectD4) return;
+
+            const valB = selectB4.value;
+            const valD = selectD4.value;
+
+            if (valB !== "" && valD !== "" && valB === valD) {
+                if (msgDiv) {
+                    msgDiv.innerText = "NOM SÉLECTIONNÉ IDENTIQUE";
+                    msgDiv.style.padding = "4px 10px";
+                }
+
+                if (sourceModifiee === 'B') {
+                    selectB4.value = "";
+                    if (cellB8) cellB8.innerText = "0";
+                    if (cellB12) cellB12.innerText = "";
+                } else {
+                    selectD4.value = "";
+                    if (cellD8) cellD8.innerText = "0";
+                    if (cellD12) cellD12.innerText = "";
+                }
+            } else {
+                if (msgDiv) {
+                    msgDiv.innerText = "";
+                    msgDiv.style.padding = "0";
+                }
+            }
+        };
+
+        const calculerC10 = function() {        
+            if (!cellC10) return;        
+            const valB8 = cellB8 ? cellB8.innerText.trim() : "";        
+            const valD8 = cellD8 ? cellD8.innerText.trim() : "";                                                                
+            if (valB8 === "0" && valD8 === "0") {            
+                cellC10.innerText = "PARTIE EN 30 REPRISES";        
+            } else if (valB8 !== "" && valD8 !== "" && valB8 === valD8) {            
+                cellC10.innerText = "PARTIE EN 30 REPRISES";        
+            } else {            
+                cellC10.innerText = "PARTIE PAR CATEGORIE";        
+            }
+            cellC10.style.backgroundColor = "#2e7d32";
+            cellC10.style.color = "#ffffff";
+            cellC10.style.fontSize = "16px";
+        };                                                                                                                                  
+
+        const calculerC16 = function() {        
+            if (!cellC16) return;        
+            const valB8 = cellB8 ? cellB8.innerText.trim() : "";        
+            const valD8 = cellD8 ? cellD8.innerText.trim() : "";                                                                
+            if (valB8 !== "" && valD8 !== "" && valB8 !== valD8) {            
+                cellC16.innerText = "ECART AVEC LA CATEGORIE";        
+            } else {            
+                cellC16.innerText = "";        
+            }    
+        };                                                                                                                                  
+
+        const calculerB18 = function() {        
+            if (!cellB18) return 0;        
+            const valB14 = parseInt(inputB14 ? inputB14.value : 0, 10) || 0;        
+            const valB8  = parseInt(cellB8 ? cellB8.innerText : 0, 10) || 0;        
+            let pourcentage = 0;
+            if (valB8 > 0) {
+                pourcentage = Math.round((valB14 / valB8) * 100);
+            }
+            cellB18.innerText = isNaN(pourcentage) ? "0%" : pourcentage.toString() + "%";        
+            return pourcentage;    
+        };                                                                                                                                                                                                                                                                            
+
+        const calculerD18 = function() {        
+            if (!cellD18) return 0;        
+            const valD14 = parseInt(inputD14 ? inputD14.value : 0, 10) || 0;        
+            const valD8  = parseInt(cellD8 ? cellD8.innerText : 0, 10) || 0;        
+            let pourcentage = 0;
+            if (valD8 > 0) {
+                pourcentage = Math.round((valD14 / valD8) * 100);
+            }
+            cellD18.innerText = isNaN(pourcentage) ? "0%" : pourcentage.toString() + "%";        
+            return pourcentage;    
+        };                                                                                                                                                                                                                                                                            
+
+        const calculerC22 = function() {        
+            if (!cellC22) return;        
+            const valB8  = parseInt(cellB8 ? cellB8.innerText : 0, 10) || 0;        
+            const valD8  = parseInt(cellD8 ? cellD8.innerText : 0, 10) || 0;        
+            const valC14 = parseInt(inputC14 ? inputC14.value : 0, 10) || 0;
+
+            if ((valB8 === 0 && valD8 === 0) || valC14 === 0) {            
+                cellC22.innerText = "";            
+                return;        
+            }                                                                
+
+            const valB14 = parseInt(inputB14 ? inputB14.value : 0, 10) || 0;        
+            const valD14 = parseInt(inputD14 ? inputD14.value : 0, 10) || 0;                                                                
+            const valB18 = parseInt(cellB18 ? cellB18.innerText : 0, 10) || 0;        
+            const valD18 = parseInt(cellD18 ? cellD18.innerText : 0, 10) || 0;                                    
+            const nomB12 = cellB12 ? cellB12.innerText.trim() : "";        
+            const nomD12 = cellD12 ? cellD12.innerText.trim() : "";                                    
+            let resultat = "";                    
+
+            if (valB8 === valD8 && valC14 === 30) {            
+                if (valB14 > valD14) {                
+                    resultat = nomB12;            
+                } else if (valD14 > valB14) {                
+                    resultat = nomD12;            
+                } else {                
+                    resultat = "EGALITE";            
+                }        
+            } else {            
+                if (valB18 > valD18) {                
+                    resultat = nomB12;            
+                } else if (valD18 > valB18) {                
+                    resultat = nomD12;            
+                } else {                
+                    resultat = "EGALITE";            
+                }        
+            }                                                                                                                                                                                                                                                                                                                                                                                                                         
+            cellC22.innerText = resultat;    
+        };                    
+
+        window.recalculerToutGlobal = function() {        
+            calculerC10();        
+            calculerC16();        
+            calculerB18();        
+            calculerD18();        
+            calculerC22();        
+            mettreAJourCouleursCellules();    
+        };                                                                                                                                                                                                                
+
+        if (inputB14) inputB14.addEventListener('input', window.recalculerToutGlobal);    
+        if (inputC14) inputC14.addEventListener('input', window.recalculerToutGlobal);    
+        if (inputD14) inputD14.addEventListener('input', window.recalculerToutGlobal);                            
+
+        if (selectB4) {        
+            const majB4 = function() {            
+                verifierDoublonEtMettreAJour('B');
+                const choisi = selectB4.value;            
+                const estValide = (choisi && choisi !== "");                                                                                                                
+                if (cellB8) cellB8.innerText = estValide && listeJoueursLocale[choisi] !== undefined ? listeJoueursLocale[choisi] : "0";            
+                if (cellB12) cellB12.innerText = estValide ? choisi : "";            
+                window.recalculerToutGlobal();        
+            };        
+            selectB4.addEventListener('change', majB4);    
+        }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+        if (selectD4) {        
+            const majD4 = function() {            
+                verifierDoublonEtMettreAJour('D');
+                const choisi = selectD4.value;            
+                const estValide = (choisi && choisi !== "");                                                                                                                
+                if (cellD8) cellD8.innerText = estValide && listeJoueursLocale[choisi] !== undefined ? listeJoueursLocale[choisi] : "0";            
+                if (cellD12) cellD12.innerText = estValide ? choisi : "";            
+                window.recalculerToutGlobal();        
+            };        
+            selectD4.addEventListener('change', majD4);    
+        }
+    });
+</script>
+
 </body>
 </html>
